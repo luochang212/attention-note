@@ -53,14 +53,12 @@ def use_svg_display():
     Defined in :numref:`sec_calculus`"""
     backend_inline.set_matplotlib_formats('svg')
 
-
 def set_figsize(figsize=(3.5, 2.5)):
     """Set the figure size for matplotlib.
 
     Defined in :numref:`sec_calculus`"""
     use_svg_display()
     d2l.plt.rcParams['figure.figsize'] = figsize
-
 
 def set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend):
     """Set the axes for matplotlib.
@@ -72,7 +70,6 @@ def set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend):
     if legend:
         axes.legend(legend)
     axes.grid()
-
 
 def plot(X, Y=None, xlabel=None, ylabel=None, legend=[], xlim=None,
          ylim=None, xscale='linear', yscale='linear',
@@ -101,7 +98,6 @@ def plot(X, Y=None, xlabel=None, ylabel=None, legend=[], xlim=None,
         axes.plot(x,y,fmt) if len(x) else axes.plot(y,fmt)
     set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend)
 
-
 def add_to_class(Class):
     """Register functions as methods in created class.
 
@@ -109,7 +105,6 @@ def add_to_class(Class):
     def wrapper(obj):
         setattr(Class, obj.__name__, obj)
     return wrapper
-
 
 class HyperParameters:
     """The base class of hyperparameters."""
@@ -127,7 +122,6 @@ class HyperParameters:
                         if k not in set(ignore+['self']) and not k.startswith('_')}
         for k, v in self.hparams.items():
             setattr(self, k, v)
-
 
 class ProgressBoard(d2l.HyperParameters):
     """The board that plots data points in animation.
@@ -182,7 +176,6 @@ class ProgressBoard(d2l.HyperParameters):
         display.display(self.fig)
         display.clear_output(wait=True)
 
-
 class Module(d2l.nn_Module, d2l.HyperParameters):
     """The base class of models.
 
@@ -195,11 +188,9 @@ class Module(d2l.nn_Module, d2l.HyperParameters):
     def loss(self, y_hat, y):
         raise NotImplementedError
 
-
     def forward(self, X):
         assert hasattr(self, 'net'), 'Neural network is defined'
         return self.net(X)
-
 
     def plot(self, key, value, train):
         """Plot a point in animation."""
@@ -218,17 +209,14 @@ class Module(d2l.nn_Module, d2l.HyperParameters):
                         ('train_' if train else 'val_') + key,
                         every_n=int(n))
 
-
     def training_step(self, batch):
         l = self.loss(self(*batch[:-1]), batch[-1])
         self.plot('loss', l, train=True)
         return l
 
-
     def validation_step(self, batch):
         l = self.loss(self(*batch[:-1]), batch[-1])
         self.plot('loss', l, train=False)
-
 
     def configure_optimizers(self):
         raise NotImplementedError
@@ -237,13 +225,11 @@ class Module(d2l.nn_Module, d2l.HyperParameters):
         """Defined in :numref:`sec_classification`"""
         return torch.optim.SGD(self.parameters(), lr=self.lr)
 
-
     def apply_init(self, inputs, init=None):
         """Defined in :numref:`sec_lazy_init`"""
         self.forward(*inputs)
         if init is not None:
             self.net.apply(init)
-
 
 class DataModule(d2l.HyperParameters):
     """The base class of data.
@@ -255,14 +241,11 @@ class DataModule(d2l.HyperParameters):
     def get_dataloader(self, train):
         raise NotImplementedError
 
-
     def train_dataloader(self):
         return self.get_dataloader(train=True)
 
-
     def val_dataloader(self):
         return self.get_dataloader(train=False)
-
 
     def get_tensorloader(self, tensors, train, indices=slice(0, None)):
         """Defined in :numref:`sec_synthetic-regression-data`"""
@@ -270,7 +253,6 @@ class DataModule(d2l.HyperParameters):
         dataset = torch.utils.data.TensorDataset(*tensors)
         return torch.utils.data.DataLoader(dataset, self.batch_size,
                                            shuffle=train)
-
 
 class Trainer(d2l.HyperParameters):
     """The base class for training models with data.
@@ -287,7 +269,6 @@ class Trainer(d2l.HyperParameters):
         self.num_val_batches = (len(self.val_dataloader)
                                 if self.val_dataloader is not None else 0)
 
-
     def prepare_model(self, model):
         model.trainer = self
         model.board.xlim = [0, self.max_epochs]
@@ -302,7 +283,6 @@ class Trainer(d2l.HyperParameters):
         self.val_batch_idx = 0
         for self.epoch in range(self.max_epochs):
             self.fit_epoch()
-
 
     def fit_epoch(self):
         raise NotImplementedError
@@ -331,7 +311,6 @@ class Trainer(d2l.HyperParameters):
                 self.model.validation_step(self.prepare_batch(batch))
             self.val_batch_idx += 1
 
-
     def __init__(self, max_epochs, num_gpus=0, gradient_clip_val=0):
         """Defined in :numref:`sec_use_gpu`"""
         self.save_hyperparameters()
@@ -343,7 +322,6 @@ class Trainer(d2l.HyperParameters):
         if self.gpus:
             batch = [d2l.to(a, self.gpus[0]) for a in batch]
         return batch
-
     
 
     def prepare_model(self, model):
@@ -354,7 +332,6 @@ class Trainer(d2l.HyperParameters):
             model.to(self.gpus[0])
         self.model = model
 
-
     def clip_gradients(self, grad_clip_val, model):
         """Defined in :numref:`sec_rnn-scratch`"""
         params = [p for p in model.parameters() if p.requires_grad]
@@ -362,7 +339,6 @@ class Trainer(d2l.HyperParameters):
         if norm > grad_clip_val:
             for param in params:
                 param.grad[:] *= grad_clip_val / norm
-
 
 class SyntheticRegressionData(d2l.DataModule):
     """Synthetic data for linear regression.
@@ -382,7 +358,6 @@ class SyntheticRegressionData(d2l.DataModule):
         i = slice(0, self.num_train) if train else slice(self.num_train, None)
         return self.get_tensorloader((self.X, self.y), train, i)
 
-
 class LinearRegressionScratch(d2l.Module):
     """The linear regression model implemented from scratch.
 
@@ -397,17 +372,14 @@ class LinearRegressionScratch(d2l.Module):
         """Defined in :numref:`sec_linear_scratch`"""
         return d2l.matmul(X, self.w) + self.b
 
-
     def loss(self, y_hat, y):
         """Defined in :numref:`sec_linear_scratch`"""
         l = (y_hat - y) ** 2 / 2
         return d2l.reduce_mean(l)
 
-
     def configure_optimizers(self):
         """Defined in :numref:`sec_linear_scratch`"""
         return SGD([self.w, self.b], self.lr)
-
 
 class SGD(d2l.HyperParameters):
     """Minibatch stochastic gradient descent.
@@ -420,12 +392,10 @@ class SGD(d2l.HyperParameters):
         for param in self.params:
             param -= self.lr * param.grad
 
-
     def zero_grad(self):
         for param in self.params:
             if param.grad is not None:
                 param.grad.zero_()
-
 
 class LinearRegression(d2l.Module):
     """The linear regression model implemented with high-level APIs.
@@ -442,22 +412,18 @@ class LinearRegression(d2l.Module):
         """Defined in :numref:`sec_linear_concise`"""
         return self.net(X)
 
-
     def loss(self, y_hat, y):
         """Defined in :numref:`sec_linear_concise`"""
         fn = nn.MSELoss()
         return fn(y_hat, y)
 
-
     def configure_optimizers(self):
         """Defined in :numref:`sec_linear_concise`"""
         return torch.optim.SGD(self.parameters(), self.lr)
 
-
     def get_w_b(self):
         """Defined in :numref:`sec_linear_concise`"""
         return (self.net.weight.data, self.net.bias.data)
-
 
 class FashionMNIST(d2l.DataModule):
     """The Fashion-MNIST dataset.
@@ -481,13 +447,11 @@ class FashionMNIST(d2l.DataModule):
                   'sandal', 'shirt', 'sneaker', 'bag', 'ankle boot']
         return [labels[int(i)] for i in indices]
 
-
     def get_dataloader(self, train):
         """Defined in :numref:`sec_fashion_mnist`"""
         data = self.train if train else self.val
         return torch.utils.data.DataLoader(data, self.batch_size, shuffle=train,
                                            num_workers=self.num_workers)
-
 
     def visualize(self, batch, nrows=1, ncols=8, labels=[]):
         """Defined in :numref:`sec_fashion_mnist`"""
@@ -495,7 +459,6 @@ class FashionMNIST(d2l.DataModule):
         if not labels:
             labels = self.text_labels(y)
         d2l.show_images(X.squeeze(1), nrows, ncols, titles=labels)
-
 
 def show_images(imgs, num_rows, num_cols, titles=None, scale=1.5):
     """Plot a list of images.
@@ -512,7 +475,6 @@ class Classifier(d2l.Module):
         self.plot('loss', self.loss(Y_hat, batch[-1]), train=False)
         self.plot('acc', self.accuracy(Y_hat, batch[-1]), train=False)
 
-
     def accuracy(self, Y_hat, Y, averaged=True):
         """Compute the number of correct predictions.
     
@@ -522,7 +484,6 @@ class Classifier(d2l.Module):
         compare = d2l.astype(preds == d2l.reshape(Y, -1), d2l.float32)
         return d2l.reduce_mean(compare) if averaged else compare
 
-
     def loss(self, Y_hat, Y, averaged=True):
         """Defined in :numref:`sec_softmax_concise`"""
         Y_hat = d2l.reshape(Y_hat, (-1, Y_hat.shape[-1]))
@@ -530,14 +491,12 @@ class Classifier(d2l.Module):
         return F.cross_entropy(
             Y_hat, Y, reduction='mean' if averaged else 'none')
 
-
     def layer_summary(self, X_shape):
         """Defined in :numref:`sec_lenet`"""
         X = d2l.randn(*X_shape)
         for layer in self.net:
             X = layer(X)
             print(layer.__class__.__name__, 'output shape:\t', X.shape)
-
 
 class SoftmaxRegression(d2l.Classifier):
     """The softmax regression model.
@@ -552,13 +511,11 @@ class SoftmaxRegression(d2l.Classifier):
     def forward(self, X):
         return self.net(X)
 
-
 def cpu():
     """Get the CPU device.
 
     Defined in :numref:`sec_use_gpu`"""
     return torch.device('cpu')
-
 
 def gpu(i=0):
     """Get a GPU device.
@@ -566,13 +523,11 @@ def gpu(i=0):
     Defined in :numref:`sec_use_gpu`"""
     return torch.device(f'cuda:{i}')
 
-
 def num_gpus():
     """Get the number of available GPUs.
 
     Defined in :numref:`sec_use_gpu`"""
     return torch.cuda.device_count()
-
 
 def try_gpu(i=0):
     """Return gpu(i) if exists, otherwise return cpu().
@@ -582,13 +537,11 @@ def try_gpu(i=0):
         return gpu(i)
     return cpu()
 
-
 def try_all_gpus():
     """Return all available GPUs, or [cpu(),] if no GPU exists.
 
     Defined in :numref:`sec_use_gpu`"""
     return [gpu(i) for i in range(num_gpus())]
-
 
 def corr2d(X, K):
     """Compute 2D cross-correlation.
@@ -601,14 +554,12 @@ def corr2d(X, K):
             Y[i, j] = d2l.reduce_sum((X[i: i + h, j: j + w] * K))
     return Y
 
-
 def init_cnn(module):
     """Initialize weights for CNNs.
 
     Defined in :numref:`sec_lenet`"""
     if type(module) == nn.Linear or type(module) == nn.Conv2d:
         nn.init.xavier_uniform_(module.weight)
-
 
 class LeNet(d2l.Classifier):
     """The LeNet-5 model.
@@ -626,7 +577,6 @@ class LeNet(d2l.Classifier):
             nn.LazyLinear(120), nn.Sigmoid(),
             nn.LazyLinear(84), nn.Sigmoid(),
             nn.LazyLinear(num_classes))
-
 
 class Residual(nn.Module):
     """The Residual block of ResNet models.
@@ -652,7 +602,6 @@ class Residual(nn.Module):
             X = self.conv3(X)
         Y += X
         return F.relu(Y)
-
 
 class ResNeXtBlock(nn.Module):
     """The ResNeXt block.
@@ -685,7 +634,6 @@ class ResNeXtBlock(nn.Module):
             X = self.bn4(self.conv4(X))
         return F.relu(Y + X)
 
-
 class TimeMachine(d2l.DataModule):
     """The Time Machine dataset.
 
@@ -711,7 +659,6 @@ class TimeMachine(d2l.DataModule):
         corpus = [vocab[token] for token in tokens]
         return corpus, vocab
 
-
     def __init__(self, batch_size, num_steps, num_train=10000, num_val=5000):
         """Defined in :numref:`sec_language-model`"""
         super(d2l.TimeMachine, self).__init__()
@@ -726,7 +673,6 @@ class TimeMachine(d2l.DataModule):
         idx = slice(0, self.num_train) if train else slice(
             self.num_train, self.num_train + self.num_val)
         return self.get_tensorloader([self.X, self.Y], train, idx)
-
 
 class Vocab:
     """Vocabulary for text."""
@@ -758,11 +704,9 @@ class Vocab:
             return [self.idx_to_token[int(index)] for index in indices]
         return self.idx_to_token[indices]
 
-
     @property
     def unk(self):  # Index for the unknown token
         return self.token_to_idx['<unk>']
-
 
 class RNNScratch(d2l.Module):
     """The RNN model implemented from scratch.
@@ -792,13 +736,11 @@ class RNNScratch(d2l.Module):
             outputs.append(state)
         return outputs, state
 
-
 def check_len(a, n):
     """Check the length of a list.
 
     Defined in :numref:`sec_rnn-scratch`"""
     assert len(a) == n, f'list\'s length {len(a)} != expected length {n}'
-
 
 def check_shape(a, shape):
     """Check the shape of a tensor.
@@ -806,7 +748,6 @@ def check_shape(a, shape):
     Defined in :numref:`sec_rnn-scratch`"""
     assert a.shape == shape, \
             f'tensor\'s shape {a.shape} != expected shape {shape}'
-
 
 class RNNLMScratch(d2l.Classifier):
     """The RNN-based language model implemented from scratch.
@@ -823,29 +764,24 @@ class RNNLMScratch(d2l.Classifier):
                 self.rnn.num_hiddens, self.vocab_size) * self.rnn.sigma)
         self.b_q = nn.Parameter(d2l.zeros(self.vocab_size))
 
-
     def training_step(self, batch):
         l = self.loss(self(*batch[:-1]), batch[-1])
         self.plot('ppl', d2l.exp(l), train=True)
         return l
 
-
     def validation_step(self, batch):
         l = self.loss(self(*batch[:-1]), batch[-1])
         self.plot('ppl', d2l.exp(l), train=False)
-
 
     def one_hot(self, X):
         """Defined in :numref:`sec_rnn-scratch`"""
         # Output shape: (num_steps, batch_size, vocab_size)
         return F.one_hot(X.T, self.vocab_size).type(torch.float32)
 
-
     def output_layer(self, rnn_outputs):
         """Defined in :numref:`sec_rnn-scratch`"""
         outputs = [d2l.matmul(H, self.W_hq) + self.b_q for H in rnn_outputs]
         return d2l.stack(outputs, 1)
-
     
 
     def forward(self, X, state=None):
@@ -853,7 +789,6 @@ class RNNLMScratch(d2l.Classifier):
         embs = self.one_hot(X)
         rnn_outputs, _ = self.rnn(embs, state)
         return self.output_layer(rnn_outputs)
-
 
     def predict(self, prefix, num_preds, vocab, device=None):
         """Defined in :numref:`sec_rnn-scratch`"""
@@ -869,7 +804,6 @@ class RNNLMScratch(d2l.Classifier):
                 outputs.append(int(d2l.reshape(d2l.argmax(Y, axis=2), 1)))
         return ''.join([vocab.idx_to_token[i] for i in outputs])
 
-
 class RNN(d2l.Module):
     """The RNN model implemented with high-level APIs.
 
@@ -882,7 +816,6 @@ class RNN(d2l.Module):
     def forward(self, inputs, H=None):
         return self.rnn(inputs, H)
 
-
 class RNNLM(d2l.RNNLMScratch):
     """The RNN-based language model implemented with high-level APIs.
 
@@ -890,10 +823,8 @@ class RNNLM(d2l.RNNLMScratch):
     def init_params(self):
         self.linear = nn.LazyLinear(self.vocab_size)
 
-
     def output_layer(self, hiddens):
         return d2l.swapaxes(self.linear(hiddens), 0, 1)
-
 
 class GRU(d2l.RNN):
     """The multilayer GRU model.
@@ -904,7 +835,6 @@ class GRU(d2l.RNN):
         self.save_hyperparameters()
         self.rnn = nn.GRU(num_inputs, num_hiddens, num_layers,
                           dropout=dropout)
-
 
 class MTFraEng(d2l.DataModule):
     """The English-French dataset.
@@ -972,7 +902,6 @@ class MTFraEng(d2l.DataModule):
         idx = slice(0, self.num_train) if train else slice(self.num_train, None)
         return self.get_tensorloader(self.arrays, train, idx)
 
-
     def build(self, src_sentences, tgt_sentences):
         """Defined in :numref:`subsec_loading-seq-fixed-len`"""
         raw_text = '\n'.join([src + '\t' + tgt for src, tgt in zip(
@@ -980,7 +909,6 @@ class MTFraEng(d2l.DataModule):
         arrays, _, _ = self._build_arrays(
             raw_text, self.src_vocab, self.tgt_vocab)
         return arrays
-
 
 def show_list_len_pair_hist(legend, xlabel, ylabel, xlist, ylist):
     """Plot the histogram for list length pairs.
@@ -995,7 +923,6 @@ def show_list_len_pair_hist(legend, xlabel, ylabel, xlist, ylist):
         patch.set_hatch('/')
     d2l.plt.legend(legend)
 
-
 class Encoder(nn.Module):
     """The base encoder interface for the encoder--decoder architecture.
 
@@ -1006,7 +933,6 @@ class Encoder(nn.Module):
     # Later there can be additional arguments (e.g., length excluding padding)
     def forward(self, X, *args):
         raise NotImplementedError
-
 
 class Decoder(nn.Module):
     """The base decoder interface for the encoder--decoder architecture.
@@ -1019,10 +945,8 @@ class Decoder(nn.Module):
     def init_state(self, enc_all_outputs, *args):
         raise NotImplementedError
 
-
     def forward(self, X, state):
         raise NotImplementedError
-
 
 class EncoderDecoder(d2l.Classifier):
     """The base class for the encoder--decoder architecture.
@@ -1038,7 +962,6 @@ class EncoderDecoder(d2l.Classifier):
         dec_state = self.decoder.init_state(enc_all_outputs, *args)
         # Return decoder output only
         return self.decoder(dec_X, dec_state)[0]
-
 
     def predict_step(self, batch, device, num_steps,
                      save_attention_weights=False):
@@ -1056,7 +979,6 @@ class EncoderDecoder(d2l.Classifier):
                 attention_weights.append(self.decoder.attention_weights)
         return d2l.concat(outputs[1:], 1), attention_weights
 
-
 def init_seq2seq(module):
     """Initialize weights for sequence-to-sequence learning.
 
@@ -1067,7 +989,6 @@ def init_seq2seq(module):
         for param in module._flat_weights_names:
             if "weight" in param:
                 nn.init.xavier_uniform_(module._parameters[param])
-
 
 class Seq2SeqEncoder(d2l.Encoder):
     """The RNN encoder for sequence-to-sequence learning.
@@ -1089,7 +1010,6 @@ class Seq2SeqEncoder(d2l.Encoder):
         # state shape: (num_layers, batch_size, num_hiddens)
         return outputs, state
 
-
 class Seq2Seq(d2l.EncoderDecoder):
     """The RNN encoder--decoder for sequence to sequence learning.
 
@@ -1102,11 +1022,9 @@ class Seq2Seq(d2l.EncoderDecoder):
         Y_hat = self(*batch[:-1])
         self.plot('loss', self.loss(Y_hat, batch[-1]), train=False)
 
-
     def configure_optimizers(self):
         # Adam optimizer is used here
         return torch.optim.Adam(self.parameters(), lr=self.lr)
-
 
 def bleu(pred_seq, label_seq, k):
     """Compute the BLEU.
@@ -1125,7 +1043,6 @@ def bleu(pred_seq, label_seq, k):
                 label_subs[' '.join(pred_tokens[i: i + n])] -= 1
         score *= math.pow(num_matches / (len_pred - n + 1), math.pow(0.5, n))
     return score
-
 
 def show_heatmaps(matrices, xlabel, ylabel, titles=None, figsize=(2.5, 2.5),
                   cmap='Reds'):
@@ -1146,7 +1063,6 @@ def show_heatmaps(matrices, xlabel, ylabel, titles=None, figsize=(2.5, 2.5),
             if titles:
                 ax.set_title(titles[j])
     fig.colorbar(pcm, ax=axes, shrink=0.6);
-
 
 def masked_softmax(X, valid_lens):
     """Perform softmax operation by masking elements on the last axis.
@@ -1173,7 +1089,6 @@ def masked_softmax(X, valid_lens):
         X = _sequence_mask(X.reshape(-1, shape[-1]), valid_lens, value=-1e6)
         return nn.functional.softmax(X.reshape(shape), dim=-1)
 
-
 class DotProductAttention(nn.Module):
     """Scaled dot product attention.
 
@@ -1192,7 +1107,6 @@ class DotProductAttention(nn.Module):
         scores = torch.bmm(queries, keys.transpose(1, 2)) / math.sqrt(d)
         self.attention_weights = masked_softmax(scores, valid_lens)
         return torch.bmm(self.dropout(self.attention_weights), values)
-
 
 class AdditiveAttention(nn.Module):
     """Additive attention.
@@ -1221,7 +1135,6 @@ class AdditiveAttention(nn.Module):
         # dimension)
         return torch.bmm(self.dropout(self.attention_weights), values)
 
-
 class AttentionDecoder(d2l.Decoder):
     """The base attention-based decoder interface.
 
@@ -1232,7 +1145,6 @@ class AttentionDecoder(d2l.Decoder):
     @property
     def attention_weights(self):
         raise NotImplementedError
-
 
 class MultiHeadAttention(d2l.Module):
     """Multi-head attention.
@@ -1271,7 +1183,6 @@ class MultiHeadAttention(d2l.Module):
         output_concat = self.transpose_output(output)
         return self.W_o(output_concat)
 
-
     def transpose_qkv(self, X):
         """Transposition for parallel computation of multiple attention heads.
     
@@ -1286,7 +1197,6 @@ class MultiHeadAttention(d2l.Module):
         # Shape of output: (batch_size * num_heads, no. of queries or key-value
         # pairs, num_hiddens / num_heads)
         return X.reshape(-1, X.shape[2], X.shape[3])
-
     
 
     def transpose_output(self, X):
@@ -1296,7 +1206,6 @@ class MultiHeadAttention(d2l.Module):
         X = X.reshape(-1, self.num_heads, X.shape[1], X.shape[2])
         X = X.permute(0, 2, 1, 3)
         return X.reshape(X.shape[0], X.shape[1], -1)
-
 
 class PositionalEncoding(nn.Module):
     """Positional encoding.
@@ -1317,7 +1226,6 @@ class PositionalEncoding(nn.Module):
         X = X + self.P[:, :X.shape[1], :].to(X.device)
         return self.dropout(X)
 
-
 class PositionWiseFFN(nn.Module):
     """The positionwise feed-forward network.
 
@@ -1331,7 +1239,6 @@ class PositionWiseFFN(nn.Module):
     def forward(self, X):
         return self.dense2(self.relu(self.dense1(X)))
 
-
 class AddNorm(nn.Module):
     """The residual connection followed by layer normalization.
 
@@ -1343,7 +1250,6 @@ class AddNorm(nn.Module):
 
     def forward(self, X, Y):
         return self.ln(self.dropout(Y) + X)
-
 
 class TransformerEncoderBlock(nn.Module):
     """The Transformer encoder block.
@@ -1361,7 +1267,6 @@ class TransformerEncoderBlock(nn.Module):
     def forward(self, X, valid_lens):
         Y = self.addnorm1(X, self.attention(X, X, X, valid_lens))
         return self.addnorm2(Y, self.ffn(Y))
-
 
 class TransformerEncoder(d2l.Encoder):
     """The Transformer encoder.
@@ -1389,7 +1294,6 @@ class TransformerEncoder(d2l.Encoder):
             self.attention_weights[
                 i] = blk.attention.attention.attention_weights
         return X
-
 
 def annotate(text, xy, xytext):
     """Defined in :numref:`sec_optimization-intro`"""
@@ -3608,3 +3512,4 @@ reduce_mean = lambda x, *args, **kwargs: x.mean(*args, **kwargs)
 expand_dims = lambda x, *args, **kwargs: x.unsqueeze(*args, **kwargs)
 swapaxes = lambda x, *args, **kwargs: x.swapaxes(*args, **kwargs)
 repeat = lambda x, *args, **kwargs: x.repeat(*args, **kwargs)
+
